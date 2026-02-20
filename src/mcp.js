@@ -11,6 +11,6 @@ export const server = new McpServer({
 
 server.registerTool(helloWorld.name, helloWorld.config, helloWorld.handler);
 server.registerTool(helloName.name, helloName.config, helloName.handler);
-server.registerTool(greetName.name, greetName.config, greetName.handler);
+server.registerTool(greetName.name, greetName.config, greetName.createHandler(server));
 
 server.registerResource(languages.name, languages.uri, languages.config, languages.reader);
