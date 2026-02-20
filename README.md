@@ -134,6 +134,7 @@ curl -X POST http://localhost:3000/mcp \
 - **Zod validation is free** — defining an `inputSchema` gives you automatic input validation before your handler runs
 - **`registerTool` over `tool`** — the `tool()` method is deprecated; `registerTool()` uses a cleaner config object pattern
 - **Stateless vs stateful** — stateless mode is simpler and sufficient for most use cases; stateful mode adds session tracking via `sessionIdGenerator`
+- **Factory pattern for server-dependent handlers** — handlers that need to call `server.sendLoggingMessage()` can't import `server` directly (circular dependency). Instead, export a `createHandler(server)` factory that closes over the server instance and returns the handler function. `mcp.js` calls `createHandler(server)` at registration time.
 - **`isError: true` vs throwing** — returning `isError: true` sends the error text back to the model as readable tool output it can reason about; throwing produces a protocol-level JSON-RPC error the model can't see
 - **MCP logging** — `server.sendLoggingMessage({ level, message })` sends log messages through the MCP protocol to the client; visible in MCP Inspector's notifications panel
 - **Resources vs tools in Claude Desktop** — Claude Desktop doesn't surface resources to the model; expose the same data as a tool if the model needs to access it
