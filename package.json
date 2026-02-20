@@ -1,0 +1,13 @@
+{
+  "name": "hello-mcp",
+  "version": "1.0.0",
+  "description": "A minimal MCP server using HTTP Streaming",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0"
+  }
+}
