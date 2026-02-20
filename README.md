@@ -67,6 +67,8 @@ Returns a JSON array of supported language keys. Backed by the same `greetings.j
 
 ## Running the Server
 
+### HTTP Streaming (MCP Inspector, remote clients)
+
 ```bash
 npm install
 npm start
@@ -79,6 +81,23 @@ To run on a different port:
 ```bash
 PORT=3001 npm start
 ```
+
+### stdio (Claude Desktop)
+
+Claude Desktop spawns the process itself — no server needs to be running beforehand. Add the following to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "hello-mcp": {
+      "command": "node",
+      "args": ["/absolute/path/to/hello-mcp/src/stdio.js"]
+    }
+  }
+}
+```
+
+Quit and relaunch Claude Desktop after editing the config. Check **Claude menu → Settings → Developer** to confirm the server shows a green dot.
 
 ## Testing with MCP Inspector
 
@@ -103,6 +122,8 @@ curl -X POST http://localhost:3000/mcp \
 ```
 
 ## Key Lessons
+
+- **Multiple transports, one server** — `mcp.js` is transport-agnostic; `server.js` (HTTP) and `stdio.js` (stdio) are separate entry points that both import the same server instance
 
 - **Separation of concerns** — `server.js` owns the HTTP transport, `mcp.js` owns the MCP server, each tool/resource lives in its own file
 - **Single source of truth** — shared data in `src/data/` is imported by both tools and resources; no duplication

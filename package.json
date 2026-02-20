@@ -5,7 +5,8 @@
   "type": "module",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "start:stdio": "node src/stdio.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0"
