@@ -16,16 +16,18 @@ The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) is an open s
 
 ```
 src/
-  server.js          # Entry point — HTTP transport
-  mcp.js             # MCP server + tool/resource registration
+  server.js            # Entry point — HTTP transport
+  stdio.js             # Entry point — stdio transport (Claude Desktop)
+  mcp.js               # MCP server + tool/resource registration
   data/
-    greetings.js     # Shared data (language → greeting mapping)
+    greetings.js       # Shared data (language → greeting mapping)
   tools/
-    helloWorld.js    # No-input tool
-    helloName.js     # Tool with a required string input
-    greetName.js     # Tool with multiple inputs including an enum
+    helloWorld.js      # No-input tool
+    helloName.js       # Tool with a required string input
+    greetName.js       # Tool with error handling and MCP logging
+    listLanguages.js   # Tool that exposes the languages list to the model
   resources/
-    languages.js     # Static resource exposing available languages
+    languages.js       # Static resource exposing available languages
 ```
 
 ## Transport: Streamable HTTP
@@ -52,7 +54,10 @@ No inputs. Always returns `"Hello, World!"`.
 Takes a required `name` string. Returns `"Hello, {name}!"`.
 
 ### greet_name
-Takes a `name` string and a `language` enum. Returns a greeting in the specified language. The enum is derived directly from the keys in `src/data/greetings.js`, so adding a new language there automatically updates both the tool's validation and the languages resource.
+Takes a `name` string and a `language` string. Returns a greeting in the specified language, or an `isError` response if the language isn't supported. Uses `sendLoggingMessage` to emit info, warning, and debug log messages through the MCP protocol — visible in the MCP Inspector notifications panel.
+
+### list_languages
+No inputs. Returns the list of supported languages. Useful for Claude Desktop where resources aren't surfaced to the model — the model can call this tool to discover valid options when `greet_name` returns an error.
 
 ## Resources
 
@@ -124,9 +129,11 @@ curl -X POST http://localhost:3000/mcp \
 ## Key Lessons
 
 - **Multiple transports, one server** — `mcp.js` is transport-agnostic; `server.js` (HTTP) and `stdio.js` (stdio) are separate entry points that both import the same server instance
-
 - **Separation of concerns** — `server.js` owns the HTTP transport, `mcp.js` owns the MCP server, each tool/resource lives in its own file
 - **Single source of truth** — shared data in `src/data/` is imported by both tools and resources; no duplication
 - **Zod validation is free** — defining an `inputSchema` gives you automatic input validation before your handler runs
 - **`registerTool` over `tool`** — the `tool()` method is deprecated; `registerTool()` uses a cleaner config object pattern
 - **Stateless vs stateful** — stateless mode is simpler and sufficient for most use cases; stateful mode adds session tracking via `sessionIdGenerator`
+- **`isError: true` vs throwing** — returning `isError: true` sends the error text back to the model as readable tool output it can reason about; throwing produces a protocol-level JSON-RPC error the model can't see
+- **MCP logging** — `server.sendLoggingMessage({ level, message })` sends log messages through the MCP protocol to the client; visible in MCP Inspector's notifications panel
+- **Resources vs tools in Claude Desktop** — Claude Desktop doesn't surface resources to the model; expose the same data as a tool if the model needs to access it
